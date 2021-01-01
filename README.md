@@ -9,7 +9,7 @@ to detect table and balls on table in real time.
 
 ## Process of detecting table and balls
 
-Most key elements of used detecting decisions are described here. Details are left to read from code. The project
+Key elements of used detecting decisions are described here. Details are left to read from code. The project
 is prototype, much of work is done by experimenting and not knowing the outcome. Still the code is tried to keep 
 readable and open for new ideas and development. Main recognition process is implemented in *BilliardVisionEngine*
 class.
@@ -18,7 +18,7 @@ class.
 ### Detecting table
 
 Play area consists of flat surface that lays between corners. Camera stand should be placed so that it contains as
-much of table surface as possible. Normally this is near roof, near some corner of table. Optimal place would be 
+much of table surface as possible. Normally this is near roof and near some corner of table. Optimal place would be 
 straight over table's middle point, but this is practically impossible because necessary light source for the game 
 blocks view.
 
@@ -37,7 +37,7 @@ wanted or will completely fail, then mouse can be used to force corner positions
 Playing area is transformed to rectangle shape with OpenCV's *warpPerspective* method. For ball recognition we are
 interested of edges in image so OpenCV's *canny* operation is now executed to find edges. After that we get all
 contours with *findContours* method. We examine these contours and if they are suitable sized and near each other
-then they are determined as ball. If they constitute too big (or small) object by radius, such as a player or cue, 
+then they are determined as a ball. If they constitute too big (or small) object by radius, such as a player or cue, 
 they are skipped. Balls are detected on every frame and if one is moving linearly it is determining as moving ball.
 If object is not behaving with linear speed it is ditched as it can't be a ball. We have method to detect is ball
 moving or not, based on previous frames so that it is possible to recognize start and end point of one turn.
@@ -52,14 +52,16 @@ red circle. Automatically detected playing surface is illustrated with green cir
 As we only use one camera there are limitations to accuracy of system. Also players can temporarily block view.
 Perspective gets skewed and especially far from camera detection accuracy suffers. This process dosen't
 do well with balls too near each other. It will determine them as one ball or skip them entirely as they are too
-big to be a ball.
+big to be one ball.
 
 That be said, this prototype of very simple detection process still works pretty well. It dosen't output 100% correct
-output all time, but in many applications this is even not necessary. For example, with this setup it could be possible
-to implement automatic score counter for straight pool. This could be achieved by examining balls movements and number
-on table and by recognizing pocketing of moving ball. It could be also used when training billiards as it is able
-to keep track of shots and for example average accuracy. If you are interested to apply this project but need some 
-technical help, please do not hesitate to contact me.
+output all of the time, but in many applications this is not even necessary. For example, with this setup it could be
+possible to implement automatic score counter for straight pool. This could be achieved by examining balls movements
+and number on table and by recognizing pocketing of moving ball.
+
+One interesting application is training billiards as computer engine is able to keep track of shots and for example
+average accuracy. If you are interested to apply this project but need some technical help, please do not hesitate to
+contact me.
 
 
 ## Installation and running BCVE engine
@@ -71,7 +73,7 @@ https://medium.com/javarevisited/setting-up-opencv-for-java-44c6eb6ae7e1 . After
 need JRE to run BCVE and Groovy if you want to build and develop it.
 
 BCVE-engine can also be used in offline mode where online video streaming is replaced with pre recorded video file.
-Or it can be used in real time by connecting computers web cam to OpenCV input stream. This can be done using separate
+Or it can be used in real time by connecting computer's web cam to OpenCV input stream. This can be done using separate
 mobile web camera or by using mobile phone as computer's web cam. I have used DroidCamX app for this as it is free
 (or little cost pro version) and easy to use.
 
