@@ -191,8 +191,9 @@ void drawBalls() {
 			}
 		}
 	}
-
 }
+
+
 
 void drawSpots() {
 	for (spot in billiardVisionEngine.engineState.table.shortTermSpots) {

@@ -16,8 +16,10 @@
 package fi.samzone.sportsai.billiards.engine
 
 import org.opencv.core.Mat
+
 import org.opencv.core.MatOfPoint
 import org.opencv.core.MatOfPoint2f
+import org.opencv.core.MatOfRect
 import org.opencv.core.Point
 import org.opencv.core.Rect
 import org.opencv.core.Rect2d
@@ -36,6 +38,9 @@ import static org.opencv.imgproc.Imgproc.Canny as canny
 import static org.opencv.core.Core.*
 import static org.opencv.core.CvType.*
 
+import org.opencv.objdetect.CascadeClassifier;
+import javax.swing.*
+
 import fi.samzone.sportsai.vision.algorithms.VisionAlgorithms
 import fi.samzone.sportsai.billiards.tableobjects.ShortTermSpot
 import fi.samzone.sportsai.billiards.tableobjects.Table
@@ -45,12 +50,17 @@ import fi.samzone.utils.ConfigurationProperties
 import static fi.samzone.sportsai.vision.algorithms.GeometricMath.*
 import static fi.samzone.sportsai.vision.constants.Color.*
 
-class BilliardVisionEngine {
-
+class BilliardVisionEngine {	
+	
 	BilliardVisionEngineState engineState = new BilliardVisionEngineState(this)
 	Size VIDEO_IMAGE_SIZE
 	Size CORNER_DETECTION_IMAGE_SIZE
 	Size TABLE_DETECTION_IMAGE_SIZE
+	boolean delay_low = false
+	boolean delay_high = false
+	boolean gameStart = false
+	boolean gameEnd = false
+	int points = 0
 
 	private long frameStartedEpoch
 
@@ -63,20 +73,22 @@ class BilliardVisionEngine {
 		this.CORNER_DETECTION_IMAGE_SIZE = CORNER_DETECTION_IMAGE_SIZE
 		this.TABLE_DETECTION_IMAGE_SIZE = TABLE_DETECTION_IMAGE_SIZE
 	}
-
-
+	
 	public void processFrame() {
+
 		startFrameTiming()
 		resize(engineState.cameraMat, engineState.processMat, VIDEO_IMAGE_SIZE)
 		findCorners()
 		warpTablePerspective()
 		detectBalls()
+		gameState()
 		engineState.table.inferBalls(engineState.detectedBallsInFrame)
 		stopFrameTiming()
 	}
 
+	
 	void findCorners() {
-		if (engineState.frameCounter % 25 == 0) {
+		if (engineState.frameCounter % 1 == 0) {
 			resize(engineState.processMat, engineState.smallMat, CORNER_DETECTION_IMAGE_SIZE)
 			Point pointOnTable = VisionAlgorithms.findSimilarPointOnCenterSpiral(engineState.smallMat)
 			Mat mask = new Mat()
@@ -90,6 +102,9 @@ class BilliardVisionEngine {
 			Point topCornerSmall = VisionAlgorithms.findColorOnLine(engineState.smallMat, WHITE, boundingRect.width, boundingRect.x, boundingRect.y, 1, 0)
 			Point bottomCornerSmall = VisionAlgorithms.findColorOnLine(engineState.smallMat, WHITE, boundingRect.width, boundingRect.x, boundingRect.y +boundingRect.height -1, 1, 0)
 
+			
+
+			
 			if (!engineState.isForcedCorners) {
 				engineState.table.backLeftCornerPoint.recordPoint(transformCoordinate(bottomCornerSmall, engineState.smallMat, engineState.processMat))
 				engineState.table.backRightCornerPoint.recordPoint(transformCoordinate(rightCornerSmall, engineState.smallMat, engineState.processMat))
@@ -98,7 +113,8 @@ class BilliardVisionEngine {
 			}
 		}
 	}
-
+		
+	
 	void detectBalls(BilliardVisionEngineState state) {
 		cvtColor(engineState.tableMat, engineState.binaryTableMat, Imgproc.COLOR_RGB2GRAY)
 		canny(engineState.binaryTableMat, engineState.binaryTableMat, 50.0, 150.0, 3, true)
@@ -131,9 +147,163 @@ class BilliardVisionEngine {
 				double contourRadius = getRadiusOptimizedWithMaxValue(contour, engineState.ballMaxRadius)
 				if (contourRadius > engineState.ballMinRadius && contourRadius < engineState.ballMaxRadius)
 					engineState.detectedBallsInFrame << getGeometricAverage(contour)
+					
+					//Count the balls that "can be" detected in the frame
+					int ballCount = engineState.detectedBallsInFrame.size()
+					
+					for (int i = 0; i < ballCount; i++) 
+						{
+							String luku = engineState.detectedBallsInFrame[i]
+							luku = luku.replace("{", "")
+							luku = luku.replace("}", "")
+							
+							String[] separatedValues = luku.split(",")
+							String luku1 = separatedValues[0]
+							String luku2 = separatedValues[1]
+							
+							double ballX = Double.parseDouble(luku1)
+							double ballY = Double.parseDouble(luku2)
+							
+							ballX = ballX.round()
+							ballY = ballY.round()
+							if (engineState.frameCounter % 5 == 0) 
+								{
+									if (!delay_low && ballX < 10 && ballY < 10)
+										{
+											delay_low = true
+											points += 1
+											println("You got a point!" + " Back Left")
+										}
+									else if (ballX < 8 && ballY > 190)
+										{
+											points += 1
+											println("You got a point!" + " Front Left")
+										}
+									else if (ballX > 380 && ballY < 5) 
+										{
+											points += 1
+											println("You got a point!" + " Back Right")
+										}
+									else if (ballX > 390 && ballY > 190)
+										{
+											points += 1
+											println("You got a point!" + " Front Right")
+										}
+									else if (!delay_high && ballX < 210 && ballX > 190 && ballY > 178) 
+										{
+											points += 1
+											delay_high = true
+											println("You got a point!" + " Front Middle")
+										}
+									else if (!delay_low && ballX < 201 && ballX > 198 && ballY < 5) 
+										{
+											delay_low = true
+											points += 1
+											println("You got a point!" + " Back Middle")
+										}
+									}
+									
+									
+									if (engineState.frameCounter % 20 == 0) 
+										{
+											delay_low = false
+										}
+									if (engineState.frameCounter % 200 == 0) 
+										{
+											delay_high = false
+										}
+								}	
+							}
+						}
+					}
+
+
+	void gameState() 
+	{
+		int ballCount = engineState.detectedBallsInFrame.size()
+		List ballListX = []
+		List ballListY = []
+		List approved = []
+		List inside = []
+		
+		double ballX;
+		double ballY
+		
+		for (int i = 0; i < ballCount; i++) 
+			{
+				String luku = engineState.detectedBallsInFrame[i]
+				luku = luku.replace("{", "")
+				luku = luku.replace("}", "")
+				
+				String[] separatedValues = luku.split(",")
+				String luku0 = separatedValues[0]
+				String luku1 = separatedValues[1]
+				
+				ballX = Double.parseDouble(luku0)
+				ballY = Double.parseDouble(luku1)
+				
+				ballX = ballX.round()
+				ballY = ballY.round()
+				
+				ballListX.add(ballX)
+				ballListY.add(ballY)
 			}
+		
+		for (int a = 0; a < ballListY.size(); a++) 
+			{
+				int sum = ballListY[a]
+				
+				if (sum > 90 && sum < 110)  
+					{
+						approved.add(a)
+					}
+			}
+			
+		if (engineState.frameCounter % 25 == 0) 
+			{
+			if (!gameStart && approved.size() > 1)
+				{
+					gameEnd = false
+					gameStart = true
+					println("Game started!")
+				}
+			}
+		if (!gameEnd && ballCount == 1 && points > 0) 
+			{
+			if (engineState.frameCounter % 100 == 0) 
+				{
+					if (!gameEnd && ballCount == 1 && points > 0) 
+						{
+							gameEnd = true
+							gameStart = false
+							gameOver()
+							points = 0
+						}
+					}
+				}
+			}
+		
+		
+		//Making the "Game Over" window when game ends
+		void gameOver() 
+		{
+			JFrame frame = new JFrame("GameOver");
+			
+					JLabel label = new JLabel("Game Over!" + " You got " + points + " points");
+					label.setHorizontalAlignment(JLabel.CENTER);
+					
+					frame.getContentPane().add(label);
+					frame.setSize(300, 200);
+					frame.setVisible(true);
+					println("Game Over!")
 		}
-	}
+		
+		
+		
+boolean isPointCloseToCorner(Point point, Point corner, double distanceThreshold) {
+    double distance = Math.sqrt(Math.pow(point.x - corner.x, 2) + Math.pow(point.y - corner.y, 2));
+    return distance <= distanceThreshold;
+}
 
 
 	Point transformCoordinate(Point sourceCordinate, Mat sourceCordinateSystem, Mat targetCordinateSystem) {
