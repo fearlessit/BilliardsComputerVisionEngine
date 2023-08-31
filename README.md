@@ -7,6 +7,12 @@ to detect table and balls on table in real time.
 ![BCVE Engine](engine_snapshot.png)
 
 
+## Links to show engine in running
+
+1) https://fearlessit.fi/videos/pool_vision_demo.mp4
+2) https://fearlessit.fi/videos/billiard_vision_example.mp4
+
+
 ## Process of detecting table and balls
 
 Key elements of used detecting decisions are described here. Details are left to read from code. The project
