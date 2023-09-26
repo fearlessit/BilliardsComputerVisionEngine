@@ -149,5 +149,5 @@ Don't hesitate to contact me.
 
 
 Sampo Yrjänäinen (Samzone),
-sampo@samzone.fi,
-www.samzone.fi
+sampo@fearlessit.fi,
+www.fearlessit.fi
