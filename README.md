@@ -9,8 +9,8 @@ runs computer vision algorithms to detect the table and balls on the table in re
 
 ## Links to show the engine running
 
-1) http://projects.fearlessit.fi/videos/pool_vision_demo.mp4
-2) http://projects.fearlessit.fi/videos/billiard_vision_example.mp4
+1) [Short demonstration video](http://projects.fearlessit.fi/videos/pool_vision_demo.mp4)
+2) [Using real-time engine in a poolroom](http://projects.fearlessit.fi/videos/billiard_vision_example.mp4)
 
 
 ## Process of detecting table and balls
