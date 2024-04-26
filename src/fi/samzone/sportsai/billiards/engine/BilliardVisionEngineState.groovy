@@ -39,7 +39,7 @@ class BilliardVisionEngineState implements Serializable {
 	double floodFillDiff = 7.5
 	int sleepBetweenFrames = 0
 
-	double ballMinRadius = 10
+	double ballMinRadius = 7
 	double ballMaxRadius = 40
 
 	double maxContourDistanceWithSameObject = 5
