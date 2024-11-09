@@ -9,8 +9,8 @@ runs computer vision algorithms to detect the table and balls on the table in re
 
 ## Links to show the engine running
 
-1) [Short demonstration video](demo/tech_short.mp4)
-2) [The operating principle of the engine with line-up drill](demo/demo_video.mp4)
+1) [Short demonstration video](https://github.com/fearlessit/BilliardsComputerVisionEngine/raw/refs/heads/main/demo/demo_video.mp4)
+2) [The operating principle of the engine with line-up drill](https://github.com/fearlessit/BilliardsComputerVisionEngine/blob/main/demo/short_tech.mp4)
 
 
 ## Process of detecting table and balls
